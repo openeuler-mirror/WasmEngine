@@ -4,7 +4,51 @@
 
 WasmEngine是一个轻量级的WebAssembly函数引擎，基于WebAssembly沙箱级安全隔离模型，提供高并发函数执行、毫秒级函数极速冷启动能力。
 
+**WasmEngine架构图**
+
+![wasm-engine-arch](./docs/WasmEngine-arch.png)
+
+
 ## 接口说明
+
+业界流行的FaaS框架一般采用HTTP协议的Restful的API接口，对接后端的函数执行引擎，WasmEngine引擎也采用类似方案，提供了一组Restful风格的faas-provider API接口，提供函数的增删改查功能以及函数调用功能接口。
+
+详细的接口定义如下：
+
+**deploy函数部署接口**
+
+- HTTP 请求类型：POST
+- URL链接：/function/deploy
+- 输入参数：JSON格式，{function_name: String, function_image: String, wasi_cap: bool}
+- 返回值：HTTP的状态码和消息内容或操作错误失败信息
+
+**delete删除函数接口**
+
+- HTTP请求类型：POST
+- URL链接：/function/delete
+- 输入参数：JSON格式，{function_name: String}
+- 返回值：HTTP的状态码和消息内容或操作错误失败信息
+
+**list查询所有函数接口**
+
+- HTTP请求类型：GET
+- URL链接：/function/list
+- 输入参数：不涉及
+- 返回值：HTTP的状态码和消息内容，其中消息内容包括所有已部署到节点上的函数列表或查询失败的错误信息
+
+ **query函数查询接口**
+
+- HTTP请求类型：POST
+- URL链接：/function/query
+- 输入参数：JSON格式，{function_name: String}
+- 返回值：HTTP的状态码和消息内容，其中消息内容包括查询函数的详细信息或失败错误信息
+
+**query函数查询接口**
+
+- HTTP请求类型：POST
+- URL链接：/function/invoke
+- 输入参数：JSON格式，{function_name: String, args: HashMap<String, String>}，其中args中存放的是函数参数kv形式的简直对，对于无key类型的函数参数类型，默认从value中取值作为参数
+- 返回值：HTTP的状态码和消息内容，其中消息内容包括查询函数的详细信息或失败错误信息
 
 ## 编译安装教程
 
@@ -14,6 +58,7 @@ WasmEngine采用Rust语言开发，因此依赖于Rust语言的编译工具链�
 Rust安装部署可参考[官方文档说明](https://www.rust-lang.org/tools/install)
 
 **WasmEngine编译**
+
 ```bash
 $ cd WasmEngine
 
@@ -231,3 +276,11 @@ The push refers to repository [127.0.0.1:5000/authentication-wasm]
 720b9e537c85: Pushed
 v2: digest: sha256:a7b8e58e4b9c2abba6a39636dbc904e01c4cfa7e1d4cc6a97f8e955e148af41e size: 527
 ```
+
+## 注意事项
+
+-  Wasm目标格式需要满足WebAssembly Spec 1.0正式标准
+- 如果应用程序需要WASI接口能力支持，只支持通过wasi-sdk或Rust语言的wasm32-unknown-wasi编译工具链编译生成的Wasm文件
+- 不支持设置每个函数调用的资源限额
+- 只支持单函数运行模型，不支持函数间调用模型
+- 一个Wasm函数镜像中只允许有一个wasm格式模块文件
