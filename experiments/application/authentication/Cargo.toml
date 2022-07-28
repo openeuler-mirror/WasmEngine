@@ -1,0 +1,18 @@
+[package]
+name = "authentication"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+md-5 = { version="0.9", default-features = false }
+another_json_minimal = "0.0.2"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dev-dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+

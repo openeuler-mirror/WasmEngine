@@ -1,0 +1,5 @@
+FROM hub.oepkgs.net/openeuler/openeuler:21.03
+COPY wasm-engine /root/
+COPY authentication-wasi.wasm /root/modules/
+WORKDIR /root
+CMD ["./wasm-engine", "-p", "modules"]

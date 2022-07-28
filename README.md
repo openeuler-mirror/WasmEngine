@@ -1,37 +1,63 @@
 # WasmEngine
 
-#### 介绍
+### 介绍
+
 WasmEngine is a webassembly function engine, which provides high concurrency and sandbox security.
 
-#### 软件架构
-软件架构说明
+### 软件架构
 
+* benches
+    * bechmark for `gcd`, `echo_string` and `authentication` function in wasi and no wasi enviroment.
+* experiments
+    * experiments/application: collections of many useful wasm and wasi apps.
+    * experiments/application/runapp: app test project.
+    * experiments/bash_libraries: concurrency test base bash library.
+    * experiments/concurrency: concurrency test for wasm-engine
+* src
+    * src/wrapper: wasmtime wrapper
+    * src/registry: local module registry with semver version control and wasi capabilities
 
-#### 安装教程
+### 使用说明
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+**In one termial**
 
-#### 使用说明
+```
+cargo run
+```
+until log `Server::run{addr=0.0.0.0:10000}: warp::server: listening on http://0.0.0.0:10000` shows up!
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+**In the other termial**
 
-#### 参与贡献
+add a wasm app from benches and run it:
+```
+curl "127.0.0.1:10000/function/add/echo/1.0.0/benches%2Fecho_string.wasm/false"
+curl -X POST -H "Content-Type: application/json" -d '{"str":"budda"}' 127.0.0.1:10000/function/run/echo/1.0.0/echo_string
+```
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+run default app provided, you need to run `make apps` befor run wasm-engine:
+```
+curl -X POST -H "Content-Type: application/json" -d '{}' 127.0.0.1:10000/function/run/hello/1.0.0/start
+curl -X POST -H "Content-Type: application/json"  -d '{"args1":"6"}' 127.0.0.1:10000/function/run/fibonacci/1.0.0/start
+curl -X POST -H "Content-Type: application/json"  -d '{"arg_uri":"yes", "arg_body":"yes", "arg_secret":"12345"}'  127.0.0.1:10000/function/run/authentication/1.0.0/authentication
+```
 
+or you can point to a directory with `-p, --preload-apps` option provided by wasm-engine binary, such as bench, it will load all .wasm suffix file for you:
+```
+wasm-engine -p benches
+```
 
-#### 特技
+### 实验说明
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+run-wasm-engine.sh will build wasm-engine image for you and run in container with loading default authentication-wasi app.
+
+```
+make
+make apps
+cd experiments/concurrency
+bash run-wasm-engine.sh 2 2147483648
+```
+
+In other terminal, changing run.sh the last line ip and result dir, then
+```
+bash run.sh
+```
