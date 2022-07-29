@@ -110,8 +110,6 @@ wasm32-wasi (installed)
 
 * benches：存放了benchmark代码，其中包含了`gcd`, `echo_string`和`authentication` 三种不同测试函数的wat格式文件
 * experiments/application: 存放了一些常见的可编译成Wasm格式的函数代码
-* experiments/bash_libraries: 存放了用来做测试使用的bash脚本代码
-* experiments/concurrency: 存放了进行函数并发性能测试的脚本代码
 * src/main.rs：WasmEngine引擎的主入口，定义了Restfult API访问接口
 * src/wrapper: 对底层WebAssembly Runtime运行时的封装
 * src/function_store: 存放了Wasm函数镜像管理和Wasm Module实例管理代码 
@@ -208,7 +206,7 @@ $ curl --location --request POST 'localhost:10000/function/query' \
 status code: 200, message: queried function info: FunctionEntry { func_name: "authentication", func_image_name: "127.0.0.1:5000/authentication-wasm:v4", func_local_path: "/var/lib/wasmengine/functions/authentication/authentication.wasm", wasi_cap: false }
 ```
 
-**调用uthentication函数**
+**调用authentication函数**
 ```bash
 $ curl --location --request POST 'localhost:10000/function/invoke' \
 --header 'Content-Type: application/json' \
