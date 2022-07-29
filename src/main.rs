@@ -1,13 +1,13 @@
 use anyhow::Context;
 use clap::Parser;
 use serde::Deserialize;
-use std::{collections::HashMap, error::Error, fs};
+use std::{collections::HashMap, error::Error};
 use tracing::{info, instrument, Level};
 use tracing_subscriber::{self, EnvFilter};
 use wasm_engine::wrapper::{config::EnvConfig, environment::Environment};
 use wasmtime::Module;
 mod function_store;
-use function_store::local_store::{FunctionEntry, FunctionStore};
+use function_store::local_store::FunctionStore;
 use function_store::module_store::ModuleStore;
 
 lazy_static::lazy_static! {
@@ -34,8 +34,6 @@ struct Args {
     #[clap(short, long)]
     preload_apps: Option<String>,
 }
-
-const PROJECT_DIR: &'static str = env!("WASM_ENGINE_PROJECT_DIR");
 
 #[instrument]
 #[tokio::main]
