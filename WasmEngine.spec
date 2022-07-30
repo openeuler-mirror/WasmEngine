@@ -47,7 +47,7 @@ rm -rf %{buildroot}
 %attr(550,root,root) %{_bindir}/wasm_engine
 
 %changelog
-* Fri Jul 29 2022 jiangpengfei <jiangpengfei9@huawei.com> - 0.1.2-1
+* Fri Jul 29 2022 jiangpengfei <jiangpengfei9@huawei.com> - v0.1.2-1
 - Type: requirement
 - CVE: NA
 - SUG: restart
