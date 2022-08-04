@@ -64,11 +64,8 @@ impl WasmtimeRuntime {
         }
         let stdout = WritePipe::new_in_memory();
         wasi = wasi.stdout(Box::new(stdout.clone()));
-        let mut args: Vec<String> = Vec::new();
-        for (_, v) in data {
-            args.push(v);
-        }
-        wasi = wasi.args(&args)?;
+        let serialized = serde_json::to_string(&data)?;
+        wasi = wasi.args(&[serialized])?;
         for preopen_dir_path in self.config.preopened_dirs() {
             let preopen_dir = Dir::open_ambient_dir(preopen_dir_path, ambient_authority())?;
             wasi = wasi.preopened_dir(preopen_dir, preopen_dir_path)?;
@@ -128,10 +125,11 @@ impl WasmtimeRuntime {
         //let wasm_function = instance.get_func(&mut store, function).unwrap();
         let wasm_function =
             instance.get_typed_func::<(i32, i32), (i32, i32), _>(&mut store, function)?;
+
         if serialized.len() > WASM_PAGE_SIZE as usize {
             return Err(anyhow!("input args size larger than {}", WASM_PAGE_SIZE));
         }
-
+        info!("serialized.len() is {}", serialized.len() as usize);
         let memory = instance
             .get_memory(&mut store, "memory")
             .ok_or(anyhow::format_err!("failed to find `memory` export"))?;

@@ -10,14 +10,20 @@ struct Response {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() != 3 {
-        eprintln!("usage: authentication <URI> <BODY> <SECRET>");
+    if args.len() != 1 {
+        eprintln!("too many args");
         return;
     }
 
-    let arg_uri = &args[0];
-    let arg_body = &args[1];
-    let arg_secret = &args[2];
+    let json = match Json::parse(&args[0].as_bytes()) {
+        Ok(json) => json,
+        Err((position, message)) => {
+            panic!("`{}` at position `{}`!!!", position, message);
+        }
+    };
+    let arg_uri = json.get("arg_uri").unwrap().print();
+    let arg_body = json.get("arg_body").unwrap().print();
+    let arg_secret = json.get("arg_secret").unwrap().print();
 
     let arg_func = "argfunc";
     let content = format!("{}#{}#{}", arg_uri, arg_body, arg_func);
@@ -36,7 +42,7 @@ fn main() {
 
     let mut r: Response = Response::default();
     let html: String;
-    if &hash == arg_secret {
+    if hash == arg_secret {
         r.status = "200".to_string();
         html = "<html><h1>Auth Pass!</h1><p>hash ".to_owned() + &hash + "</p></html>";
         r.body = html;
