@@ -34,6 +34,8 @@ anyhow = "1.0.44"
 
 [dev-dependencies]
 criterion = "0.3"
+another_json_minimal = "0.0.2"
+
 
 [[bench]]
 name = "benchmark"
