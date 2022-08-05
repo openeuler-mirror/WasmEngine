@@ -1,5 +1,4 @@
 use anyhow::Context;
-use clap::Parser;
 use serde::Deserialize;
 use std::{collections::HashMap, error::Error};
 use tracing::{info, instrument, Level};
@@ -23,22 +22,9 @@ lazy_static::lazy_static! {
     ]);
 }
 
-#[derive(Parser, Debug)]
-#[clap(about, version, author)]
-struct Args {
-    /// Log level used in wasm-engine, TRACE: 0, DEBUG: 1, INFO: 2(Default), WARN: 3, ERROR: 4
-    #[clap(short, long, default_value = "2")]
-    log_level: u8,
-
-    /// dir that contains preload apps
-    #[clap(short, long)]
-    preload_apps: Option<String>,
-}
-
 #[instrument]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    let args = Args::parse();
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .try_init()?;
