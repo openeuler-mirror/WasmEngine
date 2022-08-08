@@ -2,14 +2,20 @@
 
 Name:           WasmEngine
 Version:        v0.1.2
-Release:        2
+Release:        3
 Summary:        WasmEngine is a webassembly function engine, which provides high concurrency and sandbox security.
 
 License:        MulanPSL-2.0
 URL:            https://gitee.com/openeuler/WasmEngine
 Source0:        %{name}-%{version}.tar.gz
+Source1: git-commit
+Source2: VERSION-openeuler
+Source3: apply-patches
+Source4: gen-version.sh
+Source5: series.conf
+Source6: patch.tar.gz
 
-BuildRequires:  rust,cargo,rust-packaging
+BuildRequires:  rust,cargo,rust-packaging,git
 BuildRequires:  gcc,dtc,openssl-devel
 
 %description
@@ -17,9 +23,16 @@ Based on Rust programming language, WasmEngine is a webassembly function engine,
 Summary:        %{summary}
 
 %prep
-%autosetup -p1
+cp %{SOURCE0} .
+cp %{SOURCE1} .
+cp %{SOURCE2} .
+cp %{SOURCE3} .
+cp %{SOURCE4} .
+cp %{SOURCE5} .
+cp %{SOURCE6} .
 
 %build
+sh ./apply-patches
 rm -f build.rs
 
 mkdir -p .cargo
@@ -47,6 +60,12 @@ rm -rf %{buildroot}
 %attr(550,root,root) %{_bindir}/wasm_engine
 
 %changelog
+* Mon Aug 08 2022 jiangpengfei <jiangpengfei9@huawei.com> - v0.1.2-3
+- Type: bugfix
+- CVE: NA
+- SUG: restart
+- DESC: patch structure init, sync upstream patches
+
 * Mon Aug 08 2022 xingweizheng <xingweizheng@huawei.com> - v0.1.2-2
 - Type: requirement
 - CVE: NA

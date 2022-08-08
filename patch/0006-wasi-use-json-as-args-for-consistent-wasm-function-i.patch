@@ -1,0 +1,83 @@
+From e47f84d178d3f63b45e84c576b0f690b553f2135 Mon Sep 17 00:00:00 2001
+From: meilier <xingweizheng@huawei.com>
+Date: Fri, 5 Aug 2022 01:02:28 +0800
+Subject: [PATCH 4/6] wasi use json as args for consistent wasm function invoke
+
+---
+ .../authentication-wasi/src/main.rs            | 18 ++++++++++++------
+ src/wrapper/wasmtime_runtime.rs                | 10 ++++------
+ 2 files changed, 16 insertions(+), 12 deletions(-)
+
+diff --git a/experiments/application/authentication-wasi/src/main.rs b/experiments/application/authentication-wasi/src/main.rs
+index df00eae..91b7a87 100644
+--- a/experiments/application/authentication-wasi/src/main.rs
++++ b/experiments/application/authentication-wasi/src/main.rs
+@@ -10,14 +10,20 @@ struct Response {
+ 
+ fn main() {
+     let args: Vec<String> = env::args().collect();
+-    if args.len() != 3 {
+-        eprintln!("usage: authentication <URI> <BODY> <SECRET>");
++    if args.len() != 1 {
++        eprintln!("too many args");
+         return;
+     }
+ 
+-    let arg_uri = &args[0];
+-    let arg_body = &args[1];
+-    let arg_secret = &args[2];
++    let json = match Json::parse(&args[0].as_bytes()) {
++        Ok(json) => json,
++        Err((position, message)) => {
++            panic!("`{}` at position `{}`!!!", position, message);
++        }
++    };
++    let arg_uri = json.get("arg_uri").unwrap().print();
++    let arg_body = json.get("arg_body").unwrap().print();
++    let arg_secret = json.get("arg_secret").unwrap().print();
+ 
+     let arg_func = "argfunc";
+     let content = format!("{}#{}#{}", arg_uri, arg_body, arg_func);
+@@ -36,7 +42,7 @@ fn main() {
+ 
+     let mut r: Response = Response::default();
+     let html: String;
+-    if &hash == arg_secret {
++    if hash == arg_secret {
+         r.status = "200".to_string();
+         html = "<html><h1>Auth Pass!</h1><p>hash ".to_owned() + &hash + "</p></html>";
+         r.body = html;
+diff --git a/src/wrapper/wasmtime_runtime.rs b/src/wrapper/wasmtime_runtime.rs
+index 415dd57..6d5e9cc 100644
+--- a/src/wrapper/wasmtime_runtime.rs
++++ b/src/wrapper/wasmtime_runtime.rs
+@@ -64,11 +64,8 @@ impl WasmtimeRuntime {
+         }
+         let stdout = WritePipe::new_in_memory();
+         wasi = wasi.stdout(Box::new(stdout.clone()));
+-        let mut args: Vec<String> = Vec::new();
+-        for (_, v) in data {
+-            args.push(v);
+-        }
+-        wasi = wasi.args(&args)?;
++        let serialized = serde_json::to_string(&data)?;
++        wasi = wasi.args(&[serialized])?;
+         for preopen_dir_path in self.config.preopened_dirs() {
+             let preopen_dir = Dir::open_ambient_dir(preopen_dir_path, ambient_authority())?;
+             wasi = wasi.preopened_dir(preopen_dir, preopen_dir_path)?;
+@@ -128,10 +125,11 @@ impl WasmtimeRuntime {
+         //let wasm_function = instance.get_func(&mut store, function).unwrap();
+         let wasm_function =
+             instance.get_typed_func::<(i32, i32), (i32, i32), _>(&mut store, function)?;
++
+         if serialized.len() > WASM_PAGE_SIZE as usize {
+             return Err(anyhow!("input args size larger than {}", WASM_PAGE_SIZE));
+         }
+-
++        info!("serialized.len() is {}", serialized.len() as usize);
+         let memory = instance
+             .get_memory(&mut store, "memory")
+             .ok_or(anyhow::format_err!("failed to find `memory` export"))?;
+-- 
+2.27.0
+
