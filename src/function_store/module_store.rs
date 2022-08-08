@@ -1,8 +1,3 @@
-/*!
-Registries allow you to define "well-known" modules in the &environment that can be looked up by
-name and version.
-*/
-
 use anyhow::{anyhow, Result};
 use std::{collections::HashMap, sync::Arc, sync::RwLock};
 use tracing::info;
@@ -24,10 +19,7 @@ impl ModuleStore {
         }
     }
 
-    /// Insert module into the registry under a specific name, version and wasi capabilites.
-    ///
-    /// The version needs to be a correct semver string (e.g "1.2.3-alpha3") or the insertion will
-    /// fail. If the exact same version and name exists it will be overwritten.
+    /// Insert module into the ModuleStore under a specific name, module and wasi capabilites.
     pub fn insert(&self, name: &str, module: Module, wasi_cap: bool) -> Result<()> {
         let mut writer = self.module_store.write().unwrap();
 
@@ -44,9 +36,6 @@ impl ModuleStore {
         Ok(())
     }
 
-    /// Remove module under name & version from registry
-    ///
-    /// Exact version matching is used for lookup.
     pub fn remove(&self, name: &str) -> Result<()> {
         let mut writer = self.module_store.write().unwrap();
 
@@ -112,9 +101,5 @@ impl ModuleEntry {
 
     pub fn capability(&self) -> bool {
         self.wasi_cap
-    }
-
-    fn all(&self) -> ModuleEntry {
-        self.clone()
     }
 }

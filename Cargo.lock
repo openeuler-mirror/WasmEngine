@@ -42,6 +42,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec8ad6edb4840b78c5c3d88de606b22252d552b55f3a4699fbb10fc070ec3049"
 
 [[package]]
+name = "another_json_minimal"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77ba8341e1396c8a379f62de1b47f31256f2fe0846f5f95e9c60014d2102d9bd"
+
+[[package]]
 name = "ansi_term"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2762,6 +2768,7 @@ dependencies = [
 name = "wasm_engine"
 version = "0.1.0"
 dependencies = [
+ "another_json_minimal",
  "anyhow",
  "clap 3.2.8",
  "criterion",

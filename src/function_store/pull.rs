@@ -1,3 +1,4 @@
+use anyhow::Result;
 use flate2::read;
 use oci_distribution::{manifest, secrets::RegistryAuth, Client, Reference};
 use tar::Archive;
@@ -21,7 +22,7 @@ pub async fn pull_wasm(
     auth: &RegistryAuth,
     reference: &Reference,
     output: &str,
-) {
+) -> Result<()> {
     info!(?reference, ?output, "pulling wasm module");
 
     let image_content = client
@@ -31,19 +32,22 @@ pub async fn pull_wasm(
             vec![manifest::IMAGE_DOCKER_LAYER_GZIP_MEDIA_TYPE],
         )
         .await
-        .expect("Cannot pull Wasm module")
+        .map_err(|err| anyhow::format_err!("Cannot pull Wasm module {}", err))?
         .layers
         .into_iter()
         .next()
         .map(|layer| layer.data)
-        .expect("No data found");
+        .ok_or(anyhow::format_err!("No data found"))?;
 
     // webassembly oci spec definition: https://github.com/solo-io/wasm/spec
     // for IMAGE_DOCKER_LAYER_GZIP_MEDIA_TYPE, we need to unzip iamge_content
     // into raw wasm file
     let gz = read::GzDecoder::new(&image_content[..]);
     let mut archive = Archive::new(gz);
-    archive.unpack(output).expect("Cannot write to file");
+    archive
+        .unpack(output)
+        .map_err(|err| anyhow::format_err!("Cannot write to file: {}", err))?;
 
     info!("Wasm module successfully written to {}", output);
+    Ok(())
 }

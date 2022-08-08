@@ -1,5 +1,6 @@
 use super::pull;
 use anyhow::{anyhow, Ok, Result};
+use oci_distribution::client::ClientConfig;
 use oci_distribution::{secrets::RegistryAuth, Client, Reference};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -100,17 +101,37 @@ impl FunctionStore {
             ));
         }
 
-        let mut client = Client::new(pull::build_client_config(true));
-        let reference: Reference = image_name.parse().expect("Not a valid image reference");
+        let mut client = Client::new(ClientConfig::default());
+        let reference: Reference = image_name
+            .parse()
+            .map_err(|err| anyhow::format_err!("Not a valid image reference: {}", err))?;
 
         // pull the wasm image into the local func_store_path
-        pull::pull_wasm(
+        let pull_result = pull::pull_wasm(
             &mut client,
             &RegistryAuth::Anonymous,
             &reference,
             func_store_dir.as_str(),
         )
         .await;
+
+        if !pull_result.is_ok() {
+            let mut client = Client::new(pull::build_client_config(true));
+            pull::pull_wasm(
+                &mut client,
+                &RegistryAuth::Anonymous,
+                &reference,
+                func_store_dir.as_str(),
+            )
+            .await
+            .map_err(|err| {
+                anyhow::format_err!(
+                    "Pull image both failed with https auth: {}, and insecure http: {}",
+                    pull_result.unwrap_err(),
+                    err
+                )
+            })?;
+        }
 
         // only one wasm module file should be in the func_store_dir
         if read_dir(func_store_dir.clone()).unwrap().count() != 1 {

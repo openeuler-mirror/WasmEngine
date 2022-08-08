@@ -12,10 +12,7 @@ pub const UNIT_OF_COMPUTE_IN_INSTRUCTIONS: u64 = 100_000;
 /// Environments let us set limits on instances:
 /// * Memory limits
 /// * Compute limits
-/// * Access to host functions
-///
-/// They also define the set of plugins. Plugins can be used to modify loaded Wasm modules.
-/// Plugins are WIP and not well documented.
+/// * Access to modules
 #[derive(Clone)]
 pub struct Environment {
     runtime: WasmtimeRuntime,
@@ -36,7 +33,7 @@ impl Environment {
         &self.runtime
     }
 
-    pub fn registry(&self) -> &ModuleStore {
+    pub fn store(&self) -> &ModuleStore {
         &self.store
     }
 }
