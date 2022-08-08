@@ -240,7 +240,7 @@ mod handlers {
 
         Ok(Response {
             status: http::StatusCode::OK.as_u16(),
-            body: format!("delete function {} successfull!\n", func.function_name),
+            body: format!("delete function {} successfully!\n", func.function_name),
         })
     }
 
