@@ -1,0 +1,35 @@
+From 0a83ca643d5e4f257ff0971878b12f23b9a3ff36 Mon Sep 17 00:00:00 2001
+From: meilier <xingweizheng@huawei.com>
+Date: Mon, 8 Aug 2022 10:48:31 +0800
+Subject: [PATCH 6/6] typo fix
+
+---
+ .gitignore  | 1 +
+ src/main.rs | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/.gitignore b/.gitignore
+index 3c31371..a544b8b 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -3,3 +3,4 @@
+ *.swp
+ target
+ target-cover
++vendor
+diff --git a/src/main.rs b/src/main.rs
+index 450910d..547ade7 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -240,7 +240,7 @@ mod handlers {
+ 
+         Ok(Response {
+             status: http::StatusCode::OK.as_u16(),
+-            body: format!("delete function {} successfull!\n", func.function_name),
++            body: format!("delete function {} successfully!\n", func.function_name),
+         })
+     }
+ 
+-- 
+2.27.0
+
