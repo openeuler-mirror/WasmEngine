@@ -2,10 +2,10 @@
 
 Name:           WasmEngine
 Version:        v0.1.2
-Release:        1
+Release:        2
 Summary:        WasmEngine is a webassembly function engine, which provides high concurrency and sandbox security.
 
-License:        Mulan PSL v2
+License:        MulanPSL-2.0
 URL:            https://gitee.com/openeuler/WasmEngine
 Source0:        %{name}-%{version}.tar.gz
 
@@ -47,6 +47,12 @@ rm -rf %{buildroot}
 %attr(550,root,root) %{_bindir}/wasm_engine
 
 %changelog
+* Mon Aug 08 2022 xingweizheng <xingweizheng@huawei.com> - v0.1.2-2
+- Type: requirement
+- CVE: NA
+- SUG: restart
+- DESC: add patch directory
+
 * Fri Jul 29 2022 jiangpengfei <jiangpengfei9@huawei.com> - v0.1.2-1
 - Type: requirement
 - CVE: NA
