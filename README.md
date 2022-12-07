@@ -11,7 +11,7 @@ WasmEngine是一个轻量级的WebAssembly函数引擎，基于WebAssembly沙箱
 
 ## 接口说明
 
-业界流行的FaaS框架一般采用HTTP协议的Restful的API接口，对接后端的函数执行引擎，WasmEngine引擎也采用类似方案，提供了一组Restful风格的faas-provider API接口，提供函数的增删改查功能以及函数调用功能接口。
+业界流行的FaaS框架一般采用HTTP协议的Restful的API接口，对接后端的函数执行引擎。WasmEngine引擎也采用类似方案，提供了一组Restful风格的faas-provider API接口，提供函数的增删改查功能以及函数调用功能接口。
 
 详细的接口定义如下：
 
@@ -47,7 +47,7 @@ WasmEngine是一个轻量级的WebAssembly函数引擎，基于WebAssembly沙箱
 
 - HTTP请求类型：POST
 - URL链接：/function/invoke
-- 输入参数：JSON格式，{function_name: String, args: HashMap<String, String>}，其中args中存放的是函数参数kv形式的简直对，对于无key类型的函数参数类型，默认从value中取值作为参数
+- 输入参数：JSON格式，{function_name: String, args: HashMap<String, String>}，其中args中存放的是函数参数kv形式的键值对，对于无key类型的函数参数类型，默认从value中取值作为参数
 - 返回值：HTTP的状态码和消息内容，其中消息内容包括查询函数的详细信息或失败错误信息
 
 ## 编译安装教程
@@ -89,8 +89,8 @@ wasm32-wasi
 
 这三种不同target目标格式的区别：
 - **wasm32-unknown-emscripten**：Emscripten模式，通过Emscripten编译工具链emcc将代码编译成wasm应用，其中wasm应用中也会通过import的方式依赖于Emscripten提供的abi接口，通常用于浏览器场景
-- **wasm32-unknown-unknown**：Wasm标准模式，完全没有外部依赖的wasm标准格式，不会通过import依赖外部接口能力，通常只具有数值计算能力
-- **wasm32-wasi**：WASI模式，wasm应用通过import导入外部依赖的wasi接口能力，通过wasi接口，wasm应用具有文件目录操作、网络连接等这些扩展能力
+- **wasm32-unknown-unknown**：Wasm标准模式，无外部依赖的wasm标准格式，不会通过import依赖外部接口能力，通常只具有数值计算能力
+- **wasm32-wasi**：WASI模式，wasm应用通过import导入外部依赖的wasi接口能力，通过wasi接口，wasm应用具有文件目录操作、网络连接等扩展能力
 
 在服务器场景下，当前只支持`wasm32-unknown-unknown`和`wasm32-wasi`这两种目标格式。
 
@@ -150,7 +150,7 @@ Building: authentication-wasi
 
 例如，`authentication`函数编译生成的wasm文件路径为`target/wasm32-unknown-unknown/release/authentication.wasm`
 
-3. 接下来就是将编译生成的Wasm函数二进制文件打包成容器镜像格式，并上传到函数镜像仓库中，等待WasmEngine部署时进行拉去。
+3. 将编译生成的Wasm函数二进制文件打包成容器镜像格式，并上传到函数镜像仓库中，等待WasmEngine部署时进行拉取
 
 	Wasm函数镜像的制作方法，可以参考下面**Wasm 函数镜像制作**小节的介绍说明。
 
@@ -228,13 +228,13 @@ $ curl --location --request POST 'localhost:10000/function/delete' \
   "function_name": "hello"
 }'
 
-status code: 200, message: delete function hello successfull!
+status code: 200, message: delete function hello successfully!
 ```
 
 
 ## Wasm 函数镜像制作
 
-WasmEngine加载运行的Wasm函数同样需要类似容器镜像的管理和分发能力，因此WasmEngine复用了容器镜像仓库统一管理和分发的能力，开发者将Wasm函数制作成容器镜像，WasmEngine从远端镜像仓库拉取。
+WasmEngine加载运行的Wasm函数同样需要类似容器镜像的管理和分发能力，因此WasmEngine复用了容器镜像仓库统一管理和分发的能力。开发者将Wasm函数制作成容器镜像，WasmEngine从远端镜像仓库拉取。
 
 开发者可以通过openEuler上的isula build或者docker build容器镜像构建工具来进行容器镜像构建。
 
