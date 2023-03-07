@@ -11,13 +11,13 @@
 # See the Mulan PSL v2 for more details.
 # Author: Xiang Li
 # Create: 2020-05-18
-# Description: This script used for update isula-build version and release. Enjoy and cherrs
+# Description: This script used for update WasmEngine version and release. Enjoy and cherrs
 ###################################################################################################
 
 # Basic info
 top_dir=$(git rev-parse --show-toplevel)
 version_file="${top_dir}/VERSION-openeuler"
-spec_file="${top_dir}/isula-build.spec"
+spec_file="${top_dir}/WasmEngine.spec"
 commit_file=${top_dir}/git-commit
 color=$(tput setaf 2) # red
 color_reset=$(tput sgr0)
@@ -75,13 +75,13 @@ new_version=${major_old_version}.${minor_old_version}.${revision_old_version}
 new_release="${new_release_num}"
 new_all=${new_version}-${new_release_num}
 new_changelog=$(cat << EOF
-* $(date '+%a %b %d %Y') $author <$email> - $new_all\n- Type:\n- CVE:\n- SUG:\n- DESC:\n
+* $(date '+%a %b %d %Y') $author <$email> - v$new_all\n- Type:\n- CVE:\n- SUG:\n- DESC:\n
 EOF
 )
 
 # Replace version and release for spec and VERSION files
-sed -i -e "s/^Version: .*$/Version: ${new_version}/g" "${spec_file}"
-sed -i -e "s/^Release: .*$/Release: ${new_release}/g" "${spec_file}"
+sed -i -e "s/^Version: .*$/Version:        v${new_version}/g" "${spec_file}"
+sed -i -e "s/^Release: .*$/Release:        ${new_release}/g" "${spec_file}"
 sed -i -e "/\%changelog/a$new_changelog" "${spec_file}"
 echo "${new_all}" > "${version_file}"
 

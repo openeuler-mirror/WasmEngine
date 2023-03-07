@@ -2,7 +2,7 @@
 
 Name:           WasmEngine
 Version:        v0.1.2
-Release:        3
+Release:        4
 Summary:        WasmEngine is a webassembly function engine, which provides high concurrency and sandbox security.
 
 License:        MulanPSL-2.0
@@ -43,6 +43,9 @@ replace-with = "vendored-sources"
 
 [source.vendored-sources]
 directory = "vendor"
+
+[profile.release]
+strip = true
 EOF
 
 CARGO_HOME=.cargo cargo build --release
@@ -60,6 +63,11 @@ rm -rf %{buildroot}
 %attr(550,root,root) %{_bindir}/wasm_engine
 
 %changelog
+* Tue Mar 07 2023 xingweizheng <xingweizheng@huawei.com> - v0.1.2-4
+- Type: bugfix
+- CVE: NA
+- SUG: restart
+- DESC: strip wasm_engine binary
 * Mon Aug 08 2022 jiangpengfei <jiangpengfei9@huawei.com> - v0.1.2-3
 - Type: bugfix
 - CVE: NA
