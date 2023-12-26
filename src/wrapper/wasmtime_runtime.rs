@@ -28,9 +28,8 @@ impl WasmtimeRuntime {
             .wasm_bulk_memory(true)
             .wasm_multi_value(true)
             .wasm_multi_memory(true)
-            .wasm_module_linking(false)
             // Disable profiler
-            .profiler(ProfilingStrategy::None)?
+            .profiler(ProfilingStrategy::None)
             .cranelift_opt_level(OptLevel::SpeedAndSize)
             // Allocate resources on demand because we can't predict how many instances will exist
             .allocation_strategy(InstanceAllocationStrategy::OnDemand)
