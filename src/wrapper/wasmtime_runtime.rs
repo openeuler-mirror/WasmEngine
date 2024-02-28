@@ -2,10 +2,13 @@ use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 use tracing::info;
 use wasi_common::pipe::WritePipe;
+use wasi_common::sync::ambient_authority;
+use wasi_common::sync::Dir;
+use wasi_common::tokio::WasiCtxBuilder;
+use wasi_common::WasiCtx;
 use wasmtime::*;
-use wasmtime_wasi::{ambient_authority, tokio::WasiCtxBuilder, Dir, WasiCtx};
 
-use super::{config::EnvConfig, environment::UNIT_OF_COMPUTE_IN_INSTRUCTIONS};
+use super::config::EnvConfig;
 
 const WASM_PAGE_SIZE: u32 = 0x10000;
 
@@ -57,35 +60,33 @@ impl WasmtimeRuntime {
         module: Module,
         data: HashMap<String, String>,
     ) -> Result<String> {
-        let mut wasi = WasiCtxBuilder::new().inherit_stdio();
+        let mut wasi = WasiCtxBuilder::new();
+        wasi.inherit_stdio();
         if let Some(envs) = self.config.wasi_envs() {
-            wasi = wasi.envs(envs)?;
+            wasi.envs(envs)?;
         }
         let stdout = WritePipe::new_in_memory();
-        wasi = wasi.stdout(Box::new(stdout.clone()));
+        wasi.stdout(Box::new(stdout.clone()));
         let serialized = serde_json::to_string(&data)?;
-        wasi = wasi.args(&[serialized])?;
+        wasi.args(&[serialized])?;
         for preopen_dir_path in self.config.preopened_dirs() {
             let preopen_dir = Dir::open_ambient_dir(preopen_dir_path, ambient_authority())?;
-            wasi = wasi.preopened_dir(preopen_dir, preopen_dir_path)?;
+            wasi.preopened_dir(preopen_dir, preopen_dir_path)?;
         }
-        let wasi = wasi.build();
+        let wasictx = wasi.build();
 
-        let mut store = Store::new(&self.engine, wasi);
-        // Trap if out of fuel
-        store.out_of_fuel_trap();
+        let mut store = Store::new(&self.engine, wasictx);
+
         // Define maximum fuel
-        match self.config.max_fuel() {
-            Some(max_fuel) => {
-                store.out_of_fuel_async_yield(max_fuel, UNIT_OF_COMPUTE_IN_INSTRUCTIONS)
-            }
+        let _ = match self.config.max_fuel() {
+            Some(max_fuel) => store.fuel_async_yield_interval(Some(max_fuel)),
             // If no limit is specified use maximum
-            None => store.out_of_fuel_async_yield(u64::MAX, UNIT_OF_COMPUTE_IN_INSTRUCTIONS),
+            None => store.set_fuel(u64::MAX),
         };
 
         let instance = self.linker.instantiate_async(&mut store, &module).await?;
         instance
-            .get_typed_func::<(), (), _>(&mut store, "_start")?
+            .get_typed_func::<(), ()>(&mut store, "_start")?
             .call_async(&mut store, ())
             .await?;
 
@@ -109,21 +110,18 @@ impl WasmtimeRuntime {
     ) -> Result<String> {
         let serialized = serde_json::to_string(&args)?;
         let mut store = Store::new(&self.engine, ());
-        // Trap if out of fuel
-        store.out_of_fuel_trap();
+
         // Define maximum fuel
-        match self.config.max_fuel() {
-            Some(max_fuel) => {
-                store.out_of_fuel_async_yield(max_fuel, UNIT_OF_COMPUTE_IN_INSTRUCTIONS)
-            }
+        let _ = match self.config.max_fuel() {
+            Some(max_fuel) => store.fuel_async_yield_interval(Some(max_fuel)),
             // If no limit is specified use maximum
-            None => store.out_of_fuel_async_yield(u64::MAX, UNIT_OF_COMPUTE_IN_INSTRUCTIONS),
+            None => store.set_fuel(u64::MAX),
         };
 
         let instance = Instance::new_async(&mut store, &module, &[]).await?;
         //let wasm_function = instance.get_func(&mut store, function).unwrap();
         let wasm_function =
-            instance.get_typed_func::<(i32, i32), (i32, i32), _>(&mut store, function)?;
+            instance.get_typed_func::<(i32, i32), (i32, i32)>(&mut store, function)?;
 
         if serialized.len() > WASM_PAGE_SIZE as usize {
             return Err(anyhow!("input args size larger than {}", WASM_PAGE_SIZE));
