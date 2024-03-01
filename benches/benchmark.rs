@@ -1,15 +1,15 @@
 use anyhow::Result;
 use criterion::{criterion_group, criterion_main, Criterion};
 use serde::{Deserialize, Serialize};
+use wasi_common::{sync::WasiCtxBuilder, WasiCtx};
 use wasmtime::*;
-use wasmtime_wasi::{sync::WasiCtxBuilder, WasiCtx};
 
 fn gcd(engine: Engine, module: Module) -> Result<()> {
     let mut store = Store::new(&engine, ());
     let instance = Instance::new(&mut store, &module, &[])?;
 
     // Invoke `gcd` export
-    let gcd = instance.get_typed_func::<(i32, i32), i32, _>(&mut store, "gcd")?;
+    let gcd = instance.get_typed_func::<(i32, i32), i32>(&mut store, "gcd")?;
     gcd.call(&mut store, (6, 27))?;
 
     Ok(())
@@ -24,7 +24,7 @@ fn gcd_wasi(engine: Engine, module: Module, linker: Linker<WasiCtx>) -> Result<(
     let mut store = Store::new(&engine, wasi);
 
     let instance = linker.instantiate(&mut store, &module)?;
-    let gcd = instance.get_typed_func::<(i32, i32), i32, _>(&mut store, "gcd")?;
+    let gcd = instance.get_typed_func::<(i32, i32), i32>(&mut store, "gcd")?;
     gcd.call(&mut store, (6, 27))?;
 
     Ok(())
@@ -114,8 +114,7 @@ fn run_module<T>(
     memory.write(&mut store, heap_base as usize, data.as_bytes())?;
 
     // Invoke `function_name` export
-    let function =
-        instance.get_typed_func::<(i32, i32), (i32, i32), _>(&mut store, function_name)?;
+    let function = instance.get_typed_func::<(i32, i32), (i32, i32)>(&mut store, function_name)?;
     let (pointer, length) = function.call(&mut store, (heap_base, data.len() as i32))?;
 
     let mut total_buffer: [u8; 1024] = [0; 1024];
